@@ -37,13 +37,13 @@ export default {
       let currentPath = this.$route.fullPath;
       switch (currentPath) {
         case "/":
-          return "Chat M";
+          return "MyChats";
         case "/chat":
           return "Chat";
         case "/auth":
           return "Login";
         default:
-          return "Chat M";
+          return "MyChat";
       }
     },
   },
