@@ -2,7 +2,7 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-toolbar-title class="absolute-center"> Chat M </q-toolbar-title>
+        <q-toolbar-title class="absolute-center"> {{ title }} </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -12,11 +12,23 @@
   </q-layout>
 </template>
 
-<script setup>
-import { ref } from "vue";
-import EssentialLink from "components/EssentialLink.vue";
-
-defineOptions({
-  name: "MainLayout",
-});
+<script>
+export default {
+  computed: {
+    title() {
+      console.log(this.$route);
+      let currentPath = this.$route.fullPath;
+      switch (currentPath) {
+        case "/":
+          return "Chat M";
+        case "/chat":
+          return "Chat";
+        case "/auth":
+          return "Login";
+        default:
+          return "Chat M";
+      }
+    },
+  },
+};
 </script>
