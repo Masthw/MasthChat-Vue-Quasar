@@ -16,7 +16,6 @@
 export default {
   computed: {
     title() {
-      console.log(this.$route);
       let currentPath = this.$route.fullPath;
       switch (currentPath) {
         case "/":
