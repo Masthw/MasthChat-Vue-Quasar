@@ -6,6 +6,7 @@
       outlined
       v-model="formData.name"
       label="Name"
+      autocomplte="name"
     />
     <q-input
       class="q-mb-md"
@@ -13,6 +14,7 @@
       v-model="formData.email"
       type="email"
       label="Email"
+      autocomplete="email"
     />
     <q-input
       class="q-mb-md"
@@ -20,6 +22,7 @@
       v-model="formData.password"
       type="password"
       label="Password"
+      :autocomplete="tab === 'login' ? 'current-password' : 'new-password'"
     />
     <div class="row">
       <q-btn
