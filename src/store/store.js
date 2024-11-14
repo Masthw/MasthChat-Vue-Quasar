@@ -5,7 +5,7 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
-import { getDatabase, ref, set, update, get } from "firebase/database";
+import { getDatabase, ref, set, update, get, onValue } from "firebase/database";
 import { firebaseApp } from "boot/firebase";
 
 const auth = getAuth(firebaseApp);
@@ -152,29 +152,34 @@ const actions = {
   },
   firebaseGetUsers({ commit }) {
     const usersRef = ref(db, "users");
-    get(usersRef)
-      .then((snapshot) => {
-        if (snapshot.exists()) {
-          snapshot.forEach((childSnapshot) => {
-            const userId = childSnapshot.key;
-            const userDetails = childSnapshot.val();
-            commit("addUser", {
-              userId,
-              userDetails,
-            });
+    onValue(usersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        snapshot.forEach((childSnapshot) => {
+          const userId = childSnapshot.key;
+          const userDetails = childSnapshot.val();
+          commit("addUser", {
+            userId,
+            userDetails,
           });
-        } else {
-          console.log("Nenhum usuário encontrado");
-        }
-      })
-      .catch((error) => {
+        });
+      } else {
+        console.log("Nenhum usuário encontrado");
+      }
+    }),
+      (error) => {
         console.log("Erro ao buscar usuários:", error);
-      });
+      };
   },
 };
 const getters = {
   users: (state) => {
-    return Object.values(state.users);
+    const usersFiltered = {};
+    Object.keys(state.users).forEach((key) => {
+      if (key !== state.userDetails.userId) {
+        usersFiltered[key] = state.users[key];
+      }
+    });
+    return usersFiltered;
   },
 };
 
