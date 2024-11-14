@@ -2,64 +2,122 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
-import { getDatabase, ref, set } from "firebase/database";
-import { firebaseApp } from "src/boot/firebase";
+import { getDatabase, ref, set, update, get } from "firebase/database";
+import { firebaseApp } from "boot/firebase";
 
 const auth = getAuth(firebaseApp);
 const db = getDatabase(firebaseApp);
 
-const state = {};
-const mutations = {};
+const state = {
+  userDetails: {},
+};
+const mutations = {
+  setUserDetails(state, payload) {
+    state.userDetails = payload;
+  },
+};
 const actions = {
   registerUser({}, payload) {
     createUserWithEmailAndPassword(auth, payload.email, payload.password)
       .then((response) => {
         console.log(response);
         const userId = auth.currentUser.uid;
-        console.log("Usuário registrado com ID:", userId);
-        const userRef = ref(db, "users/" + userId);
-        set(userRef, {
-          email: payload.email,
+        set(ref(db, "users/" + userId), {
           name: payload.name,
+          email: payload.email,
           online: true,
-        })
-          .then(() => {
-            console.log("Usuário salvo no Firebase");
-          })
-          .catch((dbError) => {
-            console.log("Erro ao salvar usuário:", dbError.message);
-          });
+        });
       })
       .catch((error) => {
         console.log(error.message);
       });
   },
-  loginUser({}, payload) {
+  loginUser({ commit }, payload) {
     signInWithEmailAndPassword(auth, payload.email, payload.password)
       .then((response) => {
-        console.log("Usuário autenticado:", response);
+        console.log("Usuário logado:", response);
 
+        // Após o login, recuperar os dados do usuário do Firebase
         const userId = auth.currentUser.uid;
-        console.log("ID do usuário autenticado:", userId);
 
+        // Buscar dados do usuário no Realtime Database
         const userRef = ref(db, "users/" + userId);
-        set(userRef, {
-          online: true,
-        })
-          .then(() => {
-            console.log("Status do usuário atualizado para online no Firebase");
+        get(userRef)
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              const userDetails = snapshot.val();
+              // Atualiza o estado com os dados do usuário
+              commit("setUserDetails", {
+                userId: userId,
+                name: userDetails.name,
+                email: userDetails.email,
+              });
+              // Redireciona para a página inicial após o login
+              this.$router.push("/"); // Vai para a tela inicial após o login
+            } else {
+              console.log("Dados do usuário não encontrados");
+            }
           })
-          .catch((dbError) => {
-            console.log(
-              "Erro ao atualizar status de usuário:",
-              dbError.message
-            );
+          .catch((error) => {
+            console.error("Erro ao buscar dados do usuário:", error);
           });
       })
       .catch((error) => {
-        console.log("Erro ao fazer login:", error.message);
+        console.log("Erro de login:", error.message);
       });
+  },
+  logoutUser() {
+    signOut();
+  },
+  handleAuthStateChanged({ commit, dispatch, state }) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Usuário está logado.
+        const userId = user.uid;
+
+        // Buscar os detalhes do usuário na base de dados
+        const userRef = ref(db, "users/" + userId);
+        get(userRef)
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              const userDetails = snapshot.val();
+              // Atualizar o estado com os detalhes do usuário
+              commit("setUserDetails", {
+                userId: userId,
+                name: userDetails.name,
+                email: userDetails.email,
+              });
+              // Atualizar o status 'online' do usuário
+              dispatch("firebaseUpdateUser", {
+                userId: userId,
+                updates: { online: true },
+              });
+              // Redireciona para a página principal após login
+              this.$router.push("/");
+            }
+          })
+          .catch((error) => {
+            console.log("Erro ao buscar dados do usuário:", error);
+          });
+      } else {
+        // Usuário deslogado.
+        dispatch("firebaseUpdateUser", {
+          userId: state.userDetails.userId,
+          updates: { online: false },
+        });
+        commit("setUserDetails", {}); // Limpa os dados do usuário
+        this.$router.replace("/auth"); // Redireciona para a página de login
+      }
+    });
+  },
+
+  firebaseUpdateUser({}, payload) {
+    if (payload.userId) {
+      db.ref("users/" + payload.userId).update(payload.updates);
+    }
   },
 };
 const getters = {};
