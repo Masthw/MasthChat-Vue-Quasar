@@ -39,28 +39,28 @@ const actions = {
         console.log(error.message);
       });
   },
-  loginUser({ commit }, payload) {
+  loginUser({ commit, dispatch }, payload) {
     signInWithEmailAndPassword(auth, payload.email, payload.password)
       .then((response) => {
         console.log("Usuário logado:", response);
-
-        // Após o login, recuperar os dados do usuário do Firebase
         const userId = auth.currentUser.uid;
-
-        // Buscar dados do usuário no Realtime Database
         const userRef = ref(db, "users/" + userId);
         get(userRef)
           .then((snapshot) => {
             if (snapshot.exists()) {
               const userDetails = snapshot.val();
-              // Atualiza o estado com os dados do usuário
               commit("setUserDetails", {
                 userId: userId,
                 name: userDetails.name,
                 email: userDetails.email,
               });
+
+              dispatch("firebaseUpdateUser", {
+                userId: userId,
+                updates: { online: true },
+              });
               // Redireciona para a página inicial após o login
-              this.$router.push("/"); // Vai para a tela inicial após o login
+              this.$router.push("/");
             } else {
               console.log("Dados do usuário não encontrados");
             }
@@ -76,7 +76,6 @@ const actions = {
   logoutUser({ commit, state, dispatch }) {
     const userId = state.userDetails.userId;
     if (userId) {
-      // Atualiza o status online para false antes de fazer o logout
       dispatch("firebaseUpdateUser", {
         userId: userId,
         updates: { online: false },
@@ -141,8 +140,8 @@ const actions = {
 
   firebaseUpdateUser({}, payload) {
     if (payload.userId) {
-      const userRef = ref(db, "users/" + payload.userId); // Usando o ref de forma modular
-      update(userRef, payload.updates) // Atualizando o status
+      const userRef = ref(db, "users/" + payload.userId);
+      update(userRef, payload.updates)
         .then(() => {
           console.log("Status do usuário atualizado com sucesso");
         })
@@ -157,7 +156,7 @@ const actions = {
       .then((snapshot) => {
         if (snapshot.exists()) {
           snapshot.forEach((childSnapshot) => {
-            const userId = childSnapshot.key; // A chave do usuário
+            const userId = childSnapshot.key;
             const userDetails = childSnapshot.val();
             commit("addUser", {
               userId,
