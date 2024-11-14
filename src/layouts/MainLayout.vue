@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn
           v-if="$route.fullPath.includes('/chat')"
-          v-go-back.single
+          @click="goBack"
           icon="arrow_back"
           flat
           dense
@@ -72,6 +72,13 @@ export default {
       this.$store.dispatch("store/logoutUser").then(() => {
         this.$router.replace("/auth");
       });
+    },
+    goBack() {
+      if (window.history.length > 1) {
+        this.$router.back();
+      } else {
+        this.$router.push("/");
+      }
     },
   },
 };
