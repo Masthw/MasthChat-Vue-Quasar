@@ -69,8 +69,16 @@ const actions = {
         console.log("Erro de login:", error.message);
       });
   },
-  logoutUser() {
-    signOut();
+  logoutUser({ commit }) {
+    signOut(auth)
+      .then(() => {
+        // Limpar os dados do usuário no Vuex
+        commit("setUserDetails", {});
+        console.log("Usuário deslogado com sucesso");
+      })
+      .catch((error) => {
+        console.log("Erro ao deslogar:", error.message);
+      });
   },
   handleAuthStateChanged({ commit, dispatch, state }) {
     onAuthStateChanged(auth, (user) => {

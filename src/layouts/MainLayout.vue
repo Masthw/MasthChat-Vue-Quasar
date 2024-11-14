@@ -68,6 +68,11 @@ export default {
   },
   methods: {
     ...mapActions("store", ["logoutUser"]),
+    logoutUser() {
+      this.$store.dispatch("store/logoutUser").then(() => {
+        this.$router.replace("/auth");
+      });
+    },
   },
 };
 </script>

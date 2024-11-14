@@ -6,6 +6,7 @@
       class="q-mb-md"
       outlined
       label="Name"
+      autocomplete="name"
     />
     <q-input
       v-model="formData.email"
@@ -13,6 +14,7 @@
       outlined
       type="email"
       label="Email"
+      autocomplete="email"
     />
     <q-input
       v-model="formData.password"
@@ -20,6 +22,7 @@
       outlined
       type="password"
       label="Password"
+      :autocomplete="tab === 'login' ? 'current-password' : 'new-password'"
     />
     <div class="row">
       <q-space />
@@ -37,8 +40,8 @@ export default {
     return {
       formData: {
         name: "",
-        email: "matheus@test.com",
-        password: "123456",
+        email: "",
+        password: "",
       },
     };
   },
