@@ -2,8 +2,8 @@
   <q-page class="flex q-pa-md">
     <q-list class="full-width" separator>
       <q-item
-        v-for="user in users"
-        :key="user.id"
+        v-for="(user, key) in users"
+        :key="key"
         to="/chat"
         clickable
         v-ripple
@@ -29,27 +29,14 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
-  data() {
-    return {
-      users: [
-        {
-          id: 1,
-          name: "Matheus",
-          online: true,
-        },
-        {
-          id: 2,
-          name: "Fabricio",
-          online: false,
-        },
-        {
-          id: 3,
-          name: "Lucas",
-          online: true,
-        },
-      ],
-    };
+  computed: {
+    ...mapGetters("store", ["users"]),
+  },
+  created() {
+    // Você pode chamar o firebaseGetUsers explicitamente para garantir que os usuários sejam carregados
+    this.$store.dispatch("store/firebaseGetUsers");
   },
 };
 </script>

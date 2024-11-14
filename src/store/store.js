@@ -13,10 +13,14 @@ const db = getDatabase(firebaseApp);
 
 const state = {
   userDetails: {},
+  users: {},
 };
 const mutations = {
   setUserDetails(state, payload) {
     state.userDetails = payload;
+  },
+  addUser(state, { userId, userDetails }) {
+    state.users[userId] = userDetails;
   },
 };
 const actions = {
@@ -69,7 +73,16 @@ const actions = {
         console.log("Erro de login:", error.message);
       });
   },
-  logoutUser({ commit }) {
+  logoutUser({ commit, state, dispatch }) {
+    const userId = state.userDetails.userId;
+    if (userId) {
+      // Atualiza o status online para false antes de fazer o logout
+      dispatch("firebaseUpdateUser", {
+        userId: userId,
+        updates: { online: false },
+      });
+    }
+
     signOut(auth)
       .then(() => {
         // Limpar os dados do usuário no Vuex
@@ -103,6 +116,7 @@ const actions = {
                 userId: userId,
                 updates: { online: true },
               });
+              dispatch("firebaseGetUsers");
               // Redireciona para a página principal após login
               this.$router.push("/");
             }
@@ -112,10 +126,13 @@ const actions = {
           });
       } else {
         // Usuário deslogado.
-        dispatch("firebaseUpdateUser", {
-          userId: state.userDetails.userId,
-          updates: { online: false },
-        });
+        const userId = state.userDetails.userId;
+        if (userId) {
+          dispatch("firebaseUpdateUser", {
+            userId: state.userDetails.userId,
+            updates: { online: false },
+          });
+        }
         commit("setUserDetails", {}); // Limpa os dados do usuário
         this.$router.replace("/auth"); // Redireciona para a página de login
       }
@@ -124,11 +141,43 @@ const actions = {
 
   firebaseUpdateUser({}, payload) {
     if (payload.userId) {
-      db.ref("users/" + payload.userId).update(payload.updates);
+      const userRef = ref(db, "users/" + payload.userId); // Usando o ref de forma modular
+      update(userRef, payload.updates) // Atualizando o status
+        .then(() => {
+          console.log("Status do usuário atualizado com sucesso");
+        })
+        .catch((error) => {
+          console.error("Erro ao atualizar status do usuário:", error);
+        });
     }
   },
+  firebaseGetUsers({ commit }) {
+    const usersRef = ref(db, "users");
+    get(usersRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const userId = childSnapshot.key; // A chave do usuário
+            const userDetails = childSnapshot.val();
+            commit("addUser", {
+              userId,
+              userDetails,
+            });
+          });
+        } else {
+          console.log("Nenhum usuário encontrado");
+        }
+      })
+      .catch((error) => {
+        console.log("Erro ao buscar usuários:", error);
+      });
+  },
 };
-const getters = {};
+const getters = {
+  users: (state) => {
+    return Object.values(state.users);
+  },
+};
 
 export default {
   namespaced: true,
