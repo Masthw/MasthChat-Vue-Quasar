@@ -1,19 +1,19 @@
 {
   "users": {
-    "USERID1": {
+    "i5VPwsOByiepjE4KOY5R40Rq5DV2": {
       "name": "Matheus",
       "email": "matheus@test.com",
-      "online": true
+      "online": false
     },
-    "USERID2": {
+    "edmN9vYNaPeqCRVTBf2oP690cs23": {
       "name": "Fabricio",
       "email": "fabricio@test.com",
-      "online": true
+      "online": false
     }
   },
   "chats": {
-    "USERID1": {
-      "USERID2": {
+    "i5VPwsOByiepjE4KOY5R40Rq5DV2": {
+      "edmN9vYNaPeqCRVTBf2oP690cs23": {
         "MESSAGEID1": {
           "text": "Hi how are you?",
           "from": "them"
@@ -24,8 +24,8 @@
         }
       }
     },
-    "USERID2": {
-      "USERID1": {
+    "edmN9vYNaPeqCRVTBf2oP690cs23": {
+      "i5VPwsOByiepjE4KOY5R40Rq5DV2": {
         "MESSAGEID1": {
           "text": "Hi how are you?",
           "from": "me"

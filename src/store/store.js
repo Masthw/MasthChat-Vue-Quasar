@@ -14,6 +14,8 @@ const db = getDatabase(firebaseApp);
 const state = {
   userDetails: {},
   users: {},
+  messages: {},
+  messagesRef: {},
 };
 const mutations = {
   setUserDetails(state, payload) {
@@ -21,6 +23,18 @@ const mutations = {
   },
   addUser(state, { userId, userDetails }) {
     state.users[userId] = userDetails;
+  },
+  addMessage(state, { messageId, messageDetails }) {
+    state.messages[messageId] = messageDetails;
+  },
+  setMessagesRef(state, ref) {
+    state.messagesRef = ref;
+  },
+  clearMessagesRef(state) {
+    state.messagesRef = {}; // Limpa a referência no estado
+  },
+  clearMessages(state) {
+    state.messages = {};
   },
 };
 const actions = {
@@ -84,7 +98,6 @@ const actions = {
 
     signOut(auth)
       .then(() => {
-        // Limpar os dados do usuário no Vuex
         commit("setUserDetails", {});
         console.log("Usuário deslogado com sucesso");
       })
@@ -95,7 +108,6 @@ const actions = {
   handleAuthStateChanged({ commit, dispatch, state }) {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Usuário está logado.
         const userId = user.uid;
 
         // Buscar os detalhes do usuário na base de dados
@@ -116,7 +128,6 @@ const actions = {
                 updates: { online: true },
               });
               dispatch("firebaseGetUsers");
-              // Redireciona para a página principal após login
               this.$router.push("/");
             }
           })
@@ -124,7 +135,6 @@ const actions = {
             console.log("Erro ao buscar dados do usuário:", error);
           });
       } else {
-        // Usuário deslogado.
         const userId = state.userDetails.userId;
         if (userId) {
           dispatch("firebaseUpdateUser", {
@@ -132,8 +142,8 @@ const actions = {
             updates: { online: false },
           });
         }
-        commit("setUserDetails", {}); // Limpa os dados do usuário
-        this.$router.replace("/auth"); // Redireciona para a página de login
+        commit("setUserDetails", {});
+        this.$router.replace("/auth");
       }
     });
   },
@@ -169,6 +179,56 @@ const actions = {
       (error) => {
         console.log("Erro ao buscar usuários:", error);
       };
+  },
+  firebaseGetMessages({ state, commit }, otherUserId) {
+    const userId = state.userDetails.userId;
+
+    if (!userId) {
+      console.error("Usuário não está logado");
+      return;
+    }
+
+    // Limpa as mensagens de qualquer conversa anterior
+    commit("clearMessages");
+
+    // Atualiza a referência de mensagens para a nova conversa
+    const chatRef = ref(db, `chats/${userId}/${otherUserId}`);
+    commit("setMessagesRef", chatRef);
+
+    onValue(
+      chatRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const messageId = childSnapshot.key;
+            const messageDetails = childSnapshot.val();
+            commit("addMessage", { messageId, messageDetails });
+          });
+        } else {
+          console.log("Nenhuma mensagem encontrada");
+        }
+      },
+      (error) => {
+        console.error("Erro ao buscar mensagens:", error);
+      }
+    );
+  },
+  firebaseStopGettingMessages({ state, commit }) {
+    const messagesRef = state.messagesRef;
+
+    if (messagesRef && typeof messagesRef.off === "function") {
+      console.log("Desligando listener de mensagens");
+
+      try {
+        messagesRef.off(); // Desliga o listener
+        commit("clearMessagesRef"); // Limpa a referência no estado
+        commit("clearMessages"); // Limpa as mensagens no estado
+      } catch (error) {
+        console.error("Erro ao desligar listener:", error);
+      }
+    } else {
+      console.warn("messagesRef não está definido ou não tem o método 'off'");
+    }
   },
 };
 const getters = {

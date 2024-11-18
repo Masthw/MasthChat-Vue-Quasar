@@ -4,7 +4,7 @@
     <div class="q-pa-md column col justify-end">
       <q-chat-message
         v-for="message in messages"
-        :key="message.text"
+        :key="message.timestamp"
         :name="message.from"
         :text="[message.text]"
         :sent="message.from == 'me' ? true : false"
@@ -39,36 +39,53 @@
 </template>
 
 <script>
+import { mapActions, mapState } from "vuex";
 export default {
   data() {
     return {
       newMessage: "",
-      messages: [
-        {
-          text: "eai deboa",
-          from: "me",
-        },
-        {
-          text: "to suave doidao",
-          from: "them",
-        },
-        {
-          text: "pode cre",
-          from: "me",
-        },
-      ],
     };
   },
+  computed: {
+    ...mapState("store", ["messages", "userDetails", "users"]),
+    otherUserId() {
+      return this.$route.params.otherUserId;
+    },
+    isOnline() {
+      return this.users[this.otherUserId]?.online || false;
+    },
+  },
   methods: {
+    ...mapActions("store", [
+      "firebaseGetMessages",
+      "firebaseStopGettingMessages",
+    ]),
     sendMessage() {
       if (this.newMessage.trim() !== "") {
-        this.messages.push({
+        const message = {
           text: this.newMessage,
-          from: "me",
-        });
-        this.newMessage = "";
+          from: this.userDetails.userId,
+          timestamp: Date.now(),
+        };
+
+        const chatRef = ref(
+          this.$store.state.store.db,
+          `chats/${this.userDetails.userId}/${this.otherUserId}`
+        );
+        const newMessageRef = push(chatRef);
+
+        set(newMessageRef, message)
+          .then(() => {
+            this.newMessage = "";
+          })
+          .catch((error) => {
+            console.error("Erro ao enviar mensagem:", error);
+          });
       }
     },
+  },
+  mounted() {
+    this.firebaseGetMessages(this.$route.params.otherUserId);
   },
 };
 </script>

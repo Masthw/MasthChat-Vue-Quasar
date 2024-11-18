@@ -67,18 +67,25 @@ export default {
     },
   },
   methods: {
-    ...mapActions("store", ["logoutUser"]),
+    ...mapActions("store", ["logoutUser", "firebaseStopGettingMessages"]),
     logoutUser() {
       this.$store.dispatch("store/logoutUser").then(() => {
         this.$router.replace("/auth");
       });
     },
     goBack() {
-      if (window.history.length > 1) {
-        this.$router.back();
-      } else {
-        this.$router.push("/");
-      }
+      this.$store
+        .dispatch("store/firebaseStopGettingMessages")
+        .then(() => {
+          if (window.history.length > 1) {
+            this.$router.back();
+          } else {
+            this.$router.push("/");
+          }
+        })
+        .catch((error) => {
+          console.error("Erro ao parar de obter mensagens:", error);
+        });
     },
   },
 };
