@@ -53,15 +53,18 @@ export default {
   computed: {
     ...mapState("store", ["userDetails"]),
     title() {
-      let currentPath = this.$route.fullPath;
+      const currentPath = this.$route.fullPath;
+      const otherUserId = this.$route.params.otherUserId;
       switch (currentPath) {
         case "/":
           return "MyChats";
-        case "/chat":
-          return "Chat";
         case "/auth":
           return "Login";
         default:
+          if (otherUserId) {
+            const otherUser = this.$store.state.store.users[otherUserId];
+            return otherUser?.name || "Chat";
+          }
           return "MyChat";
       }
     },
