@@ -243,7 +243,6 @@ const actions = {
     }
   },
   firebaseSendMessage({ state }, payload) {
-    console.log("payload", payload);
     const userId = state.userDetails.userId;
     const otherUserId = payload.otherUserId;
     const message = { ...payload.message };
