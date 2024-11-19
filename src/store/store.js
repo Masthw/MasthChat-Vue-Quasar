@@ -5,7 +5,15 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
-import { getDatabase, ref, set, update, get, onValue } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  set,
+  update,
+  get,
+  onValue,
+  push,
+} from "firebase/database";
 import { firebaseApp } from "boot/firebase";
 
 const auth = getAuth(firebaseApp);
@@ -220,14 +228,33 @@ const actions = {
       console.log("Desligando listener de mensagens");
 
       try {
-        messagesRef.off(); // Desliga o listener
-        commit("clearMessagesRef"); // Limpa a referência no estado
-        commit("clearMessages"); // Limpa as mensagens no estado
+        messagesRef.off();
+        commit("clearMessagesRef");
+        commit("clearMessages");
       } catch (error) {
         console.error("Erro ao desligar listener:", error);
       }
     } else {
       console.warn("messagesRef não está definido ou não tem o método 'off'");
+    }
+  },
+  firebaseSendMessage({ state }, payload) {
+    console.log("payload", payload);
+    const userId = state.userDetails.userId;
+    const otherUserId = payload.otherUserId;
+    const message = { ...payload.message };
+
+    const userChatRef = ref(db, `chats/${userId}/${otherUserId}`);
+    const otherUserChatRef = ref(db, `chats/${otherUserId}/${userId}`);
+
+    try {
+      push(userChatRef, message);
+
+      const messageForOtherUser = { ...message, from: "them" };
+      push(otherUserChatRef, messageForOtherUser);
+      console.log("mensagem enviada com sucesso");
+    } catch (error) {
+      console.error("erro ao enviar mensagem:", error);
     }
   },
 };

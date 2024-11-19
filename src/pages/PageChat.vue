@@ -58,29 +58,17 @@ export default {
     ...mapActions("store", [
       "firebaseGetMessages",
       "firebaseStopGettingMessages",
+      "firebaseSendMessage",
     ]),
     sendMessage() {
-      if (this.newMessage.trim() !== "") {
-        const message = {
+      this.firebaseSendMessage({
+        message: {
           text: this.newMessage,
-          from: this.userDetails.userId,
-          timestamp: Date.now(),
-        };
-
-        const chatRef = ref(
-          this.$store.state.store.db,
-          `chats/${this.userDetails.userId}/${this.otherUserId}`
-        );
-        const newMessageRef = push(chatRef);
-
-        set(newMessageRef, message)
-          .then(() => {
-            this.newMessage = "";
-          })
-          .catch((error) => {
-            console.error("Erro ao enviar mensagem:", error);
-          });
-      }
+          from: "me",
+        },
+        otherUserId: this.$route.params.otherUserId,
+      });
+      this.newMessage = "";
     },
   },
   mounted() {
