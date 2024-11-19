@@ -15,11 +15,11 @@
 
       <q-tab-panels v-model="tab" animated class="bg-white text-white">
         <q-tab-panel name="login">
-          <login-register :tab="tab" />
+          <login-register :tab="tab" @update:tab="tab = $event" />
         </q-tab-panel>
 
         <q-tab-panel name="register">
-          <login-register :tab="tab" />
+          <login-register :tab="tab" @update:tab="tab = $event" />
         </q-tab-panel>
       </q-tab-panels>
     </q-card>

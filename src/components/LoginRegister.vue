@@ -53,6 +53,10 @@ export default {
       } else {
         this.registerUser(this.formData);
       }
+      this.formData.name = "";
+      this.formData.email = "";
+      this.formData.password = "";
+      this.$emit("update:tab", "login");
     },
   },
 };
