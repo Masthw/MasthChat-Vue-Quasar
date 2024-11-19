@@ -49,7 +49,6 @@ const actions = {
   registerUser({}, payload) {
     createUserWithEmailAndPassword(auth, payload.email, payload.password)
       .then((response) => {
-        console.log(response);
         const userId = auth.currentUser.uid;
         set(ref(db, "users/" + userId), {
           name: payload.name,
@@ -57,14 +56,11 @@ const actions = {
           online: true,
         });
       })
-      .catch((error) => {
-        console.log(error.message);
-      });
+      .catch((error) => {});
   },
   loginUser({ commit, dispatch }, payload) {
     signInWithEmailAndPassword(auth, payload.email, payload.password)
       .then((response) => {
-        console.log("Usuário logado:", response);
         const userId = auth.currentUser.uid;
         const userRef = ref(db, "users/" + userId);
         get(userRef)
@@ -84,16 +80,13 @@ const actions = {
               // Redireciona para a página inicial após o login
               this.$router.push("/");
             } else {
-              console.log("Dados do usuário não encontrados");
             }
           })
           .catch((error) => {
             console.error("Erro ao buscar dados do usuário:", error);
           });
       })
-      .catch((error) => {
-        console.log("Erro de login:", error.message);
-      });
+      .catch((error) => {});
   },
   logoutUser({ commit, state, dispatch }) {
     const userId = state.userDetails.userId;
@@ -107,11 +100,8 @@ const actions = {
     signOut(auth)
       .then(() => {
         commit("setUserDetails", {});
-        console.log("Usuário deslogado com sucesso");
       })
-      .catch((error) => {
-        console.log("Erro ao deslogar:", error.message);
-      });
+      .catch((error) => {});
   },
   handleAuthStateChanged({ commit, dispatch, state }, router) {
     onAuthStateChanged(auth, (user) => {
@@ -141,9 +131,7 @@ const actions = {
               }
             }
           })
-          .catch((error) => {
-            console.log("Erro ao buscar dados do usuário:", error);
-          });
+          .catch((error) => {});
       } else {
         const userId = state.userDetails.userId;
         if (userId) {
@@ -164,9 +152,7 @@ const actions = {
     if (payload.userId) {
       const userRef = ref(db, "users/" + payload.userId);
       update(userRef, payload.updates)
-        .then(() => {
-          console.log("Status do usuário atualizado com sucesso");
-        })
+        .then(() => {})
         .catch((error) => {
           console.error("Erro ao atualizar status do usuário:", error);
         });
@@ -185,12 +171,9 @@ const actions = {
           });
         });
       } else {
-        console.log("Nenhum usuário encontrado");
       }
     }),
-      (error) => {
-        console.log("Erro ao buscar usuários:", error);
-      };
+      (error) => {};
   },
   firebaseGetMessages({ state, commit }, otherUserId) {
     const userId = state.userDetails.userId;
@@ -217,7 +200,6 @@ const actions = {
             commit("addMessage", { messageId, messageDetails });
           });
         } else {
-          console.log("Nenhuma mensagem encontrada");
         }
       },
       (error) => {
@@ -229,8 +211,6 @@ const actions = {
     const messagesRef = state.messagesRef;
 
     if (messagesRef && typeof messagesRef.off === "function") {
-      console.log("Desligando listener de mensagens");
-
       try {
         messagesRef.off();
         commit("clearMessagesRef");
@@ -255,7 +235,6 @@ const actions = {
 
       const messageForOtherUser = { ...message, from: "them" };
       push(otherUserChatRef, messageForOtherUser);
-      console.log("mensagem enviada com sucesso");
     } catch (error) {
       console.error("erro ao enviar mensagem:", error);
     }
