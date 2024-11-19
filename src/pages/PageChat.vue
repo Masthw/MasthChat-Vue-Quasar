@@ -14,7 +14,7 @@
     </div>
     <q-footer elevated>
       <q-toolbar>
-        <q-form class="full-width">
+        <q-form class="full-width" @submit.prevent="sendMessage">
           <q-input
             v-model="newMessage"
             bg-color="white"
