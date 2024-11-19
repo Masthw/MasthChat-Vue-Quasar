@@ -113,7 +113,7 @@ const actions = {
         console.log("Erro ao deslogar:", error.message);
       });
   },
-  handleAuthStateChanged({ commit, dispatch, state }) {
+  handleAuthStateChanged({ commit, dispatch, state }, router) {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         const userId = user.uid;
@@ -136,7 +136,9 @@ const actions = {
                 updates: { online: true },
               });
               dispatch("firebaseGetUsers");
-              this.$router.push("/");
+              if (router && router.currentRoute.value.path === "/auth") {
+                router.push("/");
+              }
             }
           })
           .catch((error) => {
@@ -151,7 +153,9 @@ const actions = {
           });
         }
         commit("setUserDetails", {});
-        this.$router.replace("/auth");
+        if (router && router.currentRoute.value.path !== "/auth") {
+          router.replace("/auth");
+        }
       }
     });
   },

@@ -4,11 +4,19 @@
 
 <script>
 import { mapActions } from "vuex";
+import { useRouter } from "vue-router";
 
 export default {
   methods: {
-    ...mapActions("store", ["handleAuthStateChanged"]),
+    ...mapActions("store", ["handleAuthStateChanged", "logoutUser"]),
   },
-  mounted() {},
+  mounted() {
+    const router = useRouter();
+    this.handleAuthStateChanged(router);
+    window.addEventListener("beforeunload", this.handleBeforeUnload);
+  },
+  beforeUnmount() {
+    window.removeEventListener("beforeunload", this.handleBeforeUnload);
+  },
 };
 </script>
